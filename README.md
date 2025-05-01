@@ -29,3 +29,6 @@ Dashboard ini memungkinkan Anda untuk menganalisis data peminjaman sepeda berdas
 - **Suhu** memiliki korelasi yang kuat dengan jumlah peminjaman sepeda.
 - Peminjaman sepeda lebih tinggi pada bulan musim panas dan akhir pekan.
 - **Rekomendasi**: Tingkatkan armada pada musim panas dan promosikan sepeda pada akhir pekan.
+
+## 🔗 **URL Streamlit Cloud**
+- https://ouapjjt5hpqhxxqjpoxcty.streamlit.app/
