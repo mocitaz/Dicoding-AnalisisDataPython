@@ -4,7 +4,7 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 from sklearn.cluster import KMeans
 
-# Load data with new caching system
+# Load data with caching
 @st.cache_data
 def load_data():
     day_df = pd.read_csv('data/day.csv')
@@ -28,37 +28,37 @@ def load_data():
 # Title of the dashboard
 st.title('🚲 **Bike Sharing Analysis Dashboard**')
 
-# Brief Introduction to the dataset and its objectives
-st.markdown("""
-### 📊 **Introduction**
-This dashboard provides an analysis of a **Bike Sharing dataset**. It includes daily and hourly rental counts of bikes from a bike-sharing system. Explore the distributions of weather variables, trends over time, and clustering patterns in bike rentals.
-
-### 🔍 **Key Questions**:
-1. **How do temperature, humidity, and wind speed affect bike rentals?**
-2. **What are the trends in bike rentals over time (monthly, weekly)?**
-
-### 📧 **Contact Info**:
-- **Name**: mocitaz
-- **Email**: [luthfafiwork@gmail.com](mailto:luthfafiwork@gmail.com)
-""")
-
 # Load data
 combined_df = load_data()
 
-# Sidebar for selecting analysis and filtering
+# Sidebar for selecting analysis type and filtering
 st.sidebar.header('Select Analysis Type')
 options = st.sidebar.selectbox('Select Analysis', ('Distribution', 'Trends', 'Clustering'))
 
-# Filtering based on date range
-st.sidebar.header('Select Date Range')
+# Filter options: Date Range, Season, Weather
+st.sidebar.header('Filters')
+
 start_date = st.sidebar.date_input('Start Date', min_value=combined_df['dteday'].min(), max_value=combined_df['dteday'].max(), value=combined_df['dteday'].min())
 end_date = st.sidebar.date_input('End Date', min_value=combined_df['dteday'].min(), max_value=combined_df['dteday'].max(), value=combined_df['dteday'].max())
 
-# Filter data based on the selected date range
-filtered_df = combined_df[(combined_df['dteday'] >= pd.to_datetime(start_date)) & (combined_df['dteday'] <= pd.to_datetime(end_date))]
+season_filter = st.sidebar.selectbox('Season', options=['All', 'Spring', 'Summer', 'Fall', 'Winter'], index=0)
+
+weather_filter = st.sidebar.selectbox('Weather', options=['All', 'Clear', 'Mist', 'Cloudy'], index=0)
+
+# Filter data based on selections
+filtered_df = combined_df[
+    (combined_df['dteday'] >= pd.to_datetime(start_date)) &
+    (combined_df['dteday'] <= pd.to_datetime(end_date))
+]
+
+if season_filter != 'All':
+    filtered_df = filtered_df[filtered_df['season_x'] == season_filter]
+
+if weather_filter != 'All':
+    filtered_df = filtered_df[filtered_df['weathersit_x'] == weather_filter]
 
 # Show the filtered data
-st.write(f"Showing data from {start_date} to {end_date}")
+st.write(f"Showing data from {start_date} to {end_date}, Season: {season_filter}, Weather: {weather_filter}")
 st.dataframe(filtered_df)
 
 # Distribution of Variables
