@@ -11,12 +11,9 @@ def load_data():
     day_df = pd.read_csv('data/day.csv')
     hour_df = pd.read_csv('data/hour.csv')
 
-    # Convert 'dteday' column to datetime format
     day_df['dteday'] = pd.to_datetime(day_df['dteday'])
     hour_df['dteday'] = pd.to_datetime(hour_df['dteday'])
-    
-    # Merge both dataframes based on 'dteday'
-    combined_df = pd.merge(day_df, hour_df, on='dteday', how='outer', suffixes=('_day', '_hour'))
+    combined_df = pd.merge(day_df, hour_df, on='dteday', how='outer')
 
     # Cleaning data
     combined_df = combined_df.drop_duplicates()
@@ -28,7 +25,6 @@ def load_data():
     for col in combined_df.select_dtypes(include=[object, 'category']).columns:
         combined_df[col].fillna(combined_df[col].mode()[0], inplace=True)
 
-    # Converting 'dteday' to datetime after cleaning
     combined_df['dteday'] = pd.to_datetime(combined_df['dteday'])
     
     # Changing dtype of relevant variables
