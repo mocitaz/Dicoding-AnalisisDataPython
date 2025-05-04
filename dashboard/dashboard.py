@@ -1,6 +1,5 @@
 import streamlit as st
 import pandas as pd
-import numpy as np
 import seaborn as sns
 import matplotlib.pyplot as plt
 from sklearn.cluster import KMeans
@@ -27,79 +26,85 @@ def load_data():
     return combined_df
 
 # Title of the dashboard
-st.title('Bike Sharing Analysis Dashboard')
+st.title('🚲 **Bike Sharing Analysis Dashboard**')
 
 # Brief Introduction to the dataset and its objectives
 st.markdown("""
-### Introduction
-This dashboard provides an analysis of a **Bike Sharing dataset**, which contains data about the daily and hourly rental counts of bikes from a bike-sharing system.
+### 📊 **Introduction**
+This dashboard provides an analysis of a **Bike Sharing dataset**. It includes daily and hourly rental counts of bikes from a bike-sharing system. Explore the distributions of weather variables, trends over time, and clustering patterns in bike rentals.
 
-#### Dataset Overview:
-- **Day Dataset (`day.csv`)**: Contains daily bike rental data, including weather-related variables, date, and rentals.
-- **Hour Dataset (`hour.csv`)**: Contains hourly rental data with a higher granularity of time-related data, such as hour of the day, temperature, and weather conditions.
+### 🔍 **Key Questions**:
+1. **How do temperature, humidity, and wind speed affect bike rentals?**
+2. **What are the trends in bike rentals over time (monthly, weekly)?**
 
-#### Purpose:
-The objective is to perform exploratory data analysis (EDA) to understand patterns, correlations, and potential insights from the dataset, including seasonal trends, distributions of weather-related factors, and clustering patterns of bike rentals.
-
-#### Key Questions:
-1. **What are the distributions of key weather variables (temperature, humidity, wind speed)?**
-2. **How do bike rentals vary over time (daily, weekly, and monthly)?**
-
-### Analysis Type Selection
-Please use the sidebar to select the type of analysis you'd like to explore.
+### 📧 **Contact Info**:
+- **Name**: mocitaz
+- **Email**: [luthfafiwork@gmail.com](mailto:luthfafiwork@gmail.com)
 """)
 
 # Load data
 combined_df = load_data()
 
-# Sidebar for selecting different options
+# Sidebar for selecting analysis and filtering
 st.sidebar.header('Select Analysis Type')
 options = st.sidebar.selectbox('Select Analysis', ('Distribution', 'Trends', 'Clustering'))
 
+# Filtering based on date range
+st.sidebar.header('Select Date Range')
+start_date = st.sidebar.date_input('Start Date', min_value=combined_df['dteday'].min(), max_value=combined_df['dteday'].max(), value=combined_df['dteday'].min())
+end_date = st.sidebar.date_input('End Date', min_value=combined_df['dteday'].min(), max_value=combined_df['dteday'].max(), value=combined_df['dteday'].max())
+
+# Filter data based on the selected date range
+filtered_df = combined_df[(combined_df['dteday'] >= pd.to_datetime(start_date)) & (combined_df['dteday'] <= pd.to_datetime(end_date))]
+
+# Show the filtered data
+st.write(f"Showing data from {start_date} to {end_date}")
+st.dataframe(filtered_df)
+
 # Distribution of Variables
 if options == 'Distribution':
-    st.header('Distribution of Key Variables')
+    st.header('🌦️ Distribution of Key Variables')
     st.markdown("""
-    This section displays the distribution of weather-related variables, such as **temperature**, **humidity**, and **windspeed**.
+    This section displays the distribution of weather-related variables such as **temperature**, **humidity**, and **windspeed**.
     """)
 
     # Display distribution of temperature
-    st.subheader('Temperature Distribution')
+    st.subheader('🌡️ Temperature Distribution')
     fig, ax = plt.subplots(1, 2, figsize=(14, 6))
-    sns.histplot(combined_df['temp_x'], kde=True, ax=ax[0])
+    sns.histplot(filtered_df['temp_x'], kde=True, ax=ax[0])
     ax[0].set_title('Temperature Distribution')
-    sns.boxplot(x=combined_df['temp_x'], ax=ax[1])
+    sns.boxplot(x=filtered_df['temp_x'], ax=ax[1])
     ax[1].set_title('Temperature Boxplot')
     st.pyplot(fig)
 
     # Display distribution of humidity
-    st.subheader('Humidity Distribution')
+    st.subheader('💧 Humidity Distribution')
     fig, ax = plt.subplots(1, 2, figsize=(14, 6))
-    sns.histplot(combined_df['hum_x'], kde=True, ax=ax[0])
+    sns.histplot(filtered_df['hum_x'], kde=True, ax=ax[0])
     ax[0].set_title('Humidity Distribution')
-    sns.boxplot(x=combined_df['hum_x'], ax=ax[1])
+    sns.boxplot(x=filtered_df['hum_x'], ax=ax[1])
     ax[1].set_title('Humidity Boxplot')
     st.pyplot(fig)
 
     # Display distribution of windspeed
-    st.subheader('Windspeed Distribution')
+    st.subheader('💨 Windspeed Distribution')
     fig, ax = plt.subplots(1, 2, figsize=(14, 6))
-    sns.histplot(combined_df['windspeed_x'], kde=True, ax=ax[0])
+    sns.histplot(filtered_df['windspeed_x'], kde=True, ax=ax[0])
     ax[0].set_title('Windspeed Distribution')
-    sns.boxplot(x=combined_df['windspeed_x'], ax=ax[1])
+    sns.boxplot(x=filtered_df['windspeed_x'], ax=ax[1])
     ax[1].set_title('Windspeed Boxplot')
     st.pyplot(fig)
 
 # Trends over Time
 elif options == 'Trends':
-    st.header('Trends of Bike Rentals Over Time')
+    st.header('📅 Trends of Bike Rentals Over Time')
     st.markdown("""
-    In this section, we explore how bike rentals vary over time, focusing on **monthly**, **weekly**, and **daily** rental trends.
+    Explore how bike rentals vary over time, focusing on **monthly**, **weekly**, and **daily** rental trends.
     """)
 
     # Monthly trend of bike rentals
-    st.subheader('Monthly Trend of Bike Rentals')
-    monthly_avg = combined_df.groupby('mnth_x')['cnt_x'].mean().reset_index()
+    st.subheader('📊 Monthly Trend of Bike Rentals')
+    monthly_avg = filtered_df.groupby('mnth_x')['cnt_x'].mean().reset_index()
     sns.lineplot(x='mnth_x', y='cnt_x', data=monthly_avg)
     plt.title('Trends of Bike Rentals per Month')
     plt.xlabel('Month')
@@ -107,8 +112,8 @@ elif options == 'Trends':
     st.pyplot(plt)
 
     # Weekly trend of bike rentals
-    st.subheader('Weekly Trend of Bike Rentals')
-    daily_avg = combined_df.groupby('weekday_x')['cnt_x'].mean().reset_index()
+    st.subheader('📅 Weekly Trend of Bike Rentals')
+    daily_avg = filtered_df.groupby('weekday_x')['cnt_x'].mean().reset_index()
     sns.lineplot(x='weekday_x', y='cnt_x', data=daily_avg)
     plt.title('Trends of Bike Rentals per Weekday')
     plt.xlabel('Weekday')
@@ -118,20 +123,19 @@ elif options == 'Trends':
 
 # Clustering of Bike Rentals
 elif options == 'Clustering':
-    st.header('Clustering of Bike Rentals')
+    st.header('📍 Clustering of Bike Rentals')
     st.markdown("""
-    This section demonstrates **K-Means clustering** to identify different groups of bike rentals based on **temperature** and **rental count**. 
-    The goal is to understand how temperature impacts the frequency of bike rentals.
+    This section demonstrates **K-Means clustering** to identify different groups of bike rentals based on **temperature** and **rental count**.
     """)
 
     # Clustering based on temperature and bike rentals
-    st.subheader('Clustering Based on Temperature and Rentals')
-    X = combined_df[['temp_x', 'cnt_x']]
+    st.subheader('📊 Clustering Based on Temperature and Rentals')
+    X = filtered_df[['temp_x', 'cnt_x']]
     kmeans = KMeans(n_clusters=3, random_state=0).fit(X)
-    combined_df['Cluster'] = kmeans.labels_
+    filtered_df['Cluster'] = kmeans.labels_
 
     # Show the clustering
-    sns.scatterplot(x='temp_x', y='cnt_x', hue='Cluster', data=combined_df, palette='Set1')
+    sns.scatterplot(x='temp_x', y='cnt_x', hue='Cluster', data=filtered_df, palette='Set1')
     plt.title('Clustering Based on Temperature and Bike Rentals')
     plt.xlabel('Temperature')
     plt.ylabel('Bike Rentals')
