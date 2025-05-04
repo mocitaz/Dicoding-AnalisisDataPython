@@ -90,46 +90,32 @@ sns.boxplot(x=filtered_df['windspeed_x'], ax=ax[1])
 ax[1].set_title('Windspeed Boxplot')
 st.pyplot(fig)
 
-# Trends over Time
-st.header('📅 Trends of Bike Rentals Over Time')
-st.markdown("""
-Explore how bike rentals vary over time, focusing on **monthly**, **weekly**, and **daily** rental trends.
-""")
-
-# Monthly trend of bike rentals
-st.subheader('📊 Monthly Trend of Bike Rentals')
-monthly_avg = filtered_df.groupby('mnth_x')['cnt_x'].mean().reset_index()
-sns.lineplot(x='mnth_x', y='cnt_x', data=monthly_avg)
-plt.title('Trends of Bike Rentals per Month')
-plt.xlabel('Month')
-plt.ylabel('Average Rentals')
-st.pyplot(plt)
-
-# Weekly trend of bike rentals
-st.subheader('📅 Weekly Trend of Bike Rentals')
-daily_avg = filtered_df.groupby('weekday_x')['cnt_x'].mean().reset_index()
-sns.lineplot(x='weekday_x', y='cnt_x', data=daily_avg)
-plt.title('Trends of Bike Rentals per Weekday')
-plt.xlabel('Weekday')
-plt.ylabel('Average Rentals')
-plt.xticks(ticks=range(7), labels=['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'])
-st.pyplot(plt)
-
 # Clustering of Bike Rentals
 st.header('📍 Clustering of Bike Rentals')
 st.markdown("""
 This section demonstrates **K-Means clustering** to identify different groups of bike rentals based on **temperature** and **rental count**.
 """)
 
-# Clustering based on temperature and bike rentals
-st.subheader('📊 Clustering Based on Temperature and Rentals')
+# Check if there are any missing values or non-numeric data in 'temp_x' and 'cnt_x'
 X = filtered_df[['temp_x', 'cnt_x']]
-kmeans = KMeans(n_clusters=3, random_state=0).fit(X)
-filtered_df['Cluster'] = kmeans.labels_
 
-# Show the clustering
-sns.scatterplot(x='temp_x', y='cnt_x', hue='Cluster', data=filtered_df, palette='Set1')
-plt.title('Clustering Based on Temperature and Bike Rentals')
-plt.xlabel('Temperature')
-plt.ylabel('Bike Rentals')
-st.pyplot(plt)
+# Ensure data is numeric and fill missing values if needed
+X = X.dropna()  # Drop any rows with missing values
+X = X.apply(pd.to_numeric, errors='coerce')  # Convert all columns to numeric, coerce errors to NaN
+
+# Handle potential missing values after coercion
+X = X.dropna()
+
+if X.empty:
+    st.warning("Insufficient data for clustering.")
+else:
+    # Perform K-Means clustering
+    kmeans = KMeans(n_clusters=3, random_state=0).fit(X)
+    filtered_df['Cluster'] = kmeans.labels_
+
+    # Show the clustering
+    sns.scatterplot(x='temp_x', y='cnt_x', hue='Cluster', data=filtered_df, palette='Set1')
+    plt.title('Clustering Based on Temperature and Bike Rentals')
+    plt.xlabel('Temperature')
+    plt.ylabel('Bike Rentals')
+    st.pyplot(plt)
