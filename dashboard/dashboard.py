@@ -53,8 +53,51 @@ This dashboard provides an analysis of a **Bike Sharing dataset**. It includes d
 # Load data
 combined_df = load_data()
 
-# Show the data
-st.dataframe(combined_df)
+# Sidebar Features for Filtering
+st.sidebar.header('Filter Data')
+
+# Date Range filter
+start_date = st.sidebar.date_input('Start Date', min_value=combined_df['dteday'].min(), max_value=combined_df['dteday'].max(), value=combined_df['dteday'].min())
+end_date = st.sidebar.date_input('End Date', min_value=combined_df['dteday'].min(), max_value=combined_df['dteday'].max(), value=combined_df['dteday'].max())
+
+# Season Filter
+season_options = ['All', 'Spring', 'Summer', 'Fall', 'Winter']
+season_filter = st.sidebar.selectbox('Select Season', season_options)
+
+# Weather Filter (e.g., clear, cloudy, rainy)
+weather_options = ['All', 'Clear', 'Cloudy', 'Rainy']
+weather_filter = st.sidebar.selectbox('Select Weather Type', weather_options)
+
+# Filtering data based on selected inputs
+filtered_df = combined_df[(combined_df['dteday'] >= pd.to_datetime(start_date)) & (combined_df['dteday'] <= pd.to_datetime(end_date))]
+
+if season_filter != 'All':
+    season_dict = {1: 'Spring', 2: 'Summer', 3: 'Fall', 4: 'Winter'}
+    season_id = season_dict.get(season_filter, 1)
+    filtered_df = filtered_df[filtered_df['season_x'] == season_id]
+
+if weather_filter != 'All':
+    weather_dict = {1: 'Clear', 2: 'Cloudy', 3: 'Rainy'}
+    weather_id = weather_dict.get(weather_filter, 1)
+    filtered_df = filtered_df[filtered_df['weathersit_x'] == weather_id]
+
+# Show the filtered data preview
+st.sidebar.subheader('Filtered Data Preview')
+st.dataframe(filtered_df.head())
+
+# Option to download filtered data as CSV
+st.sidebar.subheader('Download Filtered Data')
+csv = filtered_df.to_csv(index=False)
+st.sidebar.download_button(
+    label="Download Data",
+    data=csv,
+    file_name='filtered_bike_sharing_data.csv',
+    mime='text/csv'
+)
+
+# Show the filtered data
+st.write(f"Showing data from {start_date} to {end_date}, Season: {season_filter}, Weather: {weather_filter}")
+st.dataframe(filtered_df)
 
 # Distribution of Variables (Directly shown without filter)
 st.header('🌦️ Distribution of Key Variables')
@@ -65,27 +108,27 @@ This section displays the distribution of weather-related variables such as **te
 # Display distribution of temperature
 st.subheader('🌡️ Temperature Distribution')
 fig, ax = plt.subplots(1, 2, figsize=(14, 6))
-sns.histplot(combined_df['temp_x'], kde=True, ax=ax[0])
+sns.histplot(filtered_df['temp_x'], kde=True, ax=ax[0])
 ax[0].set_title('Temperature Distribution')
-sns.boxplot(x=combined_df['temp_x'], ax=ax[1])
+sns.boxplot(x=filtered_df['temp_x'], ax=ax[1])
 ax[1].set_title('Temperature Boxplot')
 st.pyplot(fig)
 
 # Display distribution of humidity
 st.subheader('💧 Humidity Distribution')
 fig, ax = plt.subplots(1, 2, figsize=(14, 6))
-sns.histplot(combined_df['hum_x'], kde=True, ax=ax[0])
+sns.histplot(filtered_df['hum_x'], kde=True, ax=ax[0])
 ax[0].set_title('Humidity Distribution')
-sns.boxplot(x=combined_df['hum_x'], ax=ax[1])
+sns.boxplot(x=filtered_df['hum_x'], ax=ax[1])
 ax[1].set_title('Humidity Boxplot')
 st.pyplot(fig)
 
 # Display distribution of windspeed
 st.subheader('💨 Windspeed Distribution')
 fig, ax = plt.subplots(1, 2, figsize=(14, 6))
-sns.histplot(combined_df['windspeed_x'], kde=True, ax=ax[0])
+sns.histplot(filtered_df['windspeed_x'], kde=True, ax=ax[0])
 ax[0].set_title('Windspeed Distribution')
-sns.boxplot(x=combined_df['windspeed_x'], ax=ax[1])
+sns.boxplot(x=filtered_df['windspeed_x'], ax=ax[1])
 ax[1].set_title('Windspeed Boxplot')
 st.pyplot(fig)
 
@@ -97,7 +140,7 @@ Explore how bike rentals vary over time, focusing on **monthly**, **weekly**, an
 
 # Monthly trend of bike rentals
 st.subheader('📊 Monthly Trend of Bike Rentals')
-monthly_avg = combined_df.groupby('mnth_x')['cnt_x'].mean().reset_index()
+monthly_avg = filtered_df.groupby('mnth_x')['cnt_x'].mean().reset_index()
 sns.lineplot(x='mnth_x', y='cnt_x', data=monthly_avg)
 plt.title('Trends of Bike Rentals per Month')
 plt.xlabel('Month')
@@ -106,7 +149,7 @@ st.pyplot(plt)
 
 # Weekly trend of bike rentals
 st.subheader('📅 Weekly Trend of Bike Rentals')
-daily_avg = combined_df.groupby('weekday_x')['cnt_x'].mean().reset_index()
+daily_avg = filtered_df.groupby('weekday_x')['cnt_x'].mean().reset_index()
 sns.lineplot(x='weekday_x', y='cnt_x', data=daily_avg)
 plt.title('Trends of Bike Rentals per Weekday')
 plt.xlabel('Weekday')
@@ -123,12 +166,12 @@ The goal is to understand how temperature impacts the frequency of bike rentals.
 
 # Clustering based on temperature and bike rentals
 st.subheader('📊 Clustering Based on Temperature and Rentals')
-X = combined_df[['temp_x', 'cnt_x']]
+X = filtered_df[['temp_x', 'cnt_x']]
 kmeans = KMeans(n_clusters=3, random_state=0).fit(X)
-combined_df['Cluster'] = kmeans.labels_
+filtered_df['Cluster'] = kmeans.labels_
 
 # Show the clustering
-sns.scatterplot(x='temp_x', y='cnt_x', hue='Cluster', data=combined_df, palette='Set1')
+sns.scatterplot(x='temp_x', y='cnt_x', hue='Cluster', data=filtered_df, palette='Set1')
 plt.title('Clustering Based on Temperature and Bike Rentals')
 plt.xlabel('Temperature')
 plt.ylabel('Bike Rentals')
